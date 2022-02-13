@@ -40,11 +40,6 @@ def AIRLABS_data_into_sql():
                         "name":  Text,
                         }
                     )
-    # dataframe.to_sql(con=engine, name='airlines_database', if_exists='replace',
-    #                 index=False)
-
-    # with engine.connect() as con:
-    #    con.execute('ALTER TABLE airlines_database ADD PRIMARY KEY (icao_code);')
 
 
 if __name__ == '__main__':
