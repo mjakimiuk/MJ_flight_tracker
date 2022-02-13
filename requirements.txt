@@ -1,4 +1,3 @@
-airportsdata==20220107
 click==8.0.3
 Flask==2.0.2
 Flask-WTF==1.0.0
