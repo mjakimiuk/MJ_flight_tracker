@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 import requests
 import pandas as pd
@@ -5,29 +6,37 @@ import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.types import Integer, Text, Float
 import airportsdata
+from dotenv import load_dotenv
 
-def AIRLABS_airlines_response_data() -> Dict:
+# Load environment variables
+load_dotenv()
+
+
+# Module constants
+api_base = 'http://airlabs.co/api/v9/'
+
+
+def airlabs_airlines_response_data() -> Dict:
     """
-    Function retrieves airlines name databes in json dictionary format.
+    Function retrieves airlines name database in json dictionary format.
     """
     params = {
-    'api_key': '0b811789-1183-4a07-804b-1fa64fc83e77',  # API personal key, for testing purpose I will leave it
+    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key, for testing purpose I will leave it
     'name': ''  # Get results sorted by name
     }
     method = 'airlines'  # One of AIRLABS API's databases
-    api_base = 'http://airlabs.co/api/v9/'
     api_result = requests.get(api_base+method, params)
     api_response = api_result.json()
     return api_response['response']
 
 
-def AIRLABS_airlines_data_into_sql():
+def airlabs_airlines_data_into_sql():
     """
     Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine('postgresql+psycopg2://postgres:MarJak12!@172.19.112.1/airports', echo=True)  # Database personal key, for testing purpose I will leave it
-    dataframe = pd.DataFrame.from_dict(AIRLABS_airlines_response_data())
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    dataframe = pd.DataFrame.from_dict(airlabs_airlines_response_data())
     dataframe.to_sql(
                     'airlines_database',
                     engine,
@@ -43,29 +52,28 @@ def AIRLABS_airlines_data_into_sql():
                     )
 
 
-def AIRLABS_flights_response_data() -> Dict:
+def airlabs_flights_response_data() -> Dict:
     """
-    Function retrieves airlines name databes in json dictionary format.
+    Function retrieves flights data database in json dictionary format.
     """
     params = {
-    'api_key': '0b811789-1183-4a07-804b-1fa64fc83e77',  # API personal key, for testing purpose I will leave it
+    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key, for testing purpose I will leave it
     'dep_iata' : '',
     'arr_iata' : ''
     }
     method = 'flights'  # One of AIRLABS API's databases
-    api_base = 'http://airlabs.co/api/v9/'
     api_result = requests.get(api_base+method, params)
     api_response = api_result.json()
     return api_response['response']
 
 
-def AIRLABS_flights_data_into_sql():
+def airlabs_flights_data_into_sql():
     """
-    Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
+    Function transforms .json data from AIRLABS_flights_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine('postgresql+psycopg2://postgres:MarJak12!@172.19.112.1/airports', echo=True)  # Database personal key, for testing purpose I will leave it
-    dataframe = pd.DataFrame.from_dict(AIRLABS_flights_response_data())
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    dataframe = pd.DataFrame.from_dict(airlabs_flights_response_data())
     dataframe.to_sql(
                     'flights_database',
                     engine,
@@ -98,28 +106,27 @@ def AIRLABS_flights_data_into_sql():
                     )
 
 
-def AIRLABS_schedules_response_data() -> Dict:
+def airlabs_schedules_response_data() -> Dict:
     """
-    Function retrieves airlines name databes in json dictionary format.
+    Function retrieves flight schedules database for specific airport in json dictionary format.
     """
     params = {
-    'api_key': '0b811789-1183-4a07-804b-1fa64fc83e77',  # API personal key, for testing purpose I will leave it
+    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key, for testing purpose I will leave it
     'dep_iata' : 'OSL'  # This value will be variable in future. API requires search value and it is not possible to search by empty value.
     }
     method = 'schedules'  # One of AIRLABS API's databases
-    api_base = 'http://airlabs.co/api/v9/'
     api_result = requests.get(api_base+method, params)
     api_response = api_result.json()
     return api_response['response']
 
 
-def AIRLABS_schedules_data_into_sql():
+def airlabs_schedules_data_into_sql():
     """
     Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine('postgresql+psycopg2://postgres:MarJak12!@172.19.112.1/airports', echo=True)  # Database personal key, for testing purpose I will leave it
-    dataframe = pd.DataFrame.from_dict(AIRLABS_schedules_response_data())
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    dataframe = pd.DataFrame.from_dict(airlabs_schedules_response_data())
     dataframe.to_sql(
                     'schedules_database',
                     engine,
@@ -168,7 +175,7 @@ def AIRLABS_schedules_data_into_sql():
                     )
 
 
-def Airports_module_dataframe():
+def airports_module_dataframe():
     """
     Function uses aiportsdata module to retrieve dataframe with airports names and IATA codes.
     """
@@ -179,12 +186,12 @@ def Airports_module_dataframe():
     dataframe_new['name_city'] = dataframe_new[['name','city']].agg(' - '.join, axis=1)  # 3rd column added with Airport name + City Name
     return dataframe_new
 
-def Airports_data_into_sql():
+def airports_data_into_sql():
     """
     Function transforms dataframe into SQL table. 
     """
-    engine = create_engine('postgresql+psycopg2://postgres:MarJak12!@172.19.112.1/airports', echo=True)  # Database personal key, for testing purpose I will leave it
-    dataframe = pd.DataFrame.from_dict(Airports_module_dataframe())
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    dataframe = pd.DataFrame.from_dict(airports_module_dataframe())
     dataframe.to_sql(
                     'airport_database_table',
                     engine,
@@ -202,5 +209,5 @@ def Airports_data_into_sql():
 
 
 if __name__ == '__main__':
-    AIRLABS_schedules_data_into_sql()
+    airlabs_airlines_data_into_sql()
 

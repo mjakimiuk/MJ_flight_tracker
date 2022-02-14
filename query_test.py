@@ -27,10 +27,9 @@ def home():
     if request.method == "GET":
         database_data = Airport_database.query.all()
         airlines = [i.as_self() for i in database_data]
-        return render_template("index.html",
-                               airlines=airlines)
-    if request.method == "POST":
-        flights()
+    return render_template("index.html",
+                           airlines=airlines)
+    
 
 @app.route("/flights", methods=["POST", "GET"])
 def flights():
