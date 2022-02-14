@@ -44,3 +44,4 @@ def AIRLABS_data_into_sql():
 
 if __name__ == '__main__':
     AIRLABS_data_into_sql()
+
