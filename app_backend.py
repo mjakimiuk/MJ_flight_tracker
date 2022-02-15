@@ -8,7 +8,7 @@ from sqlalchemy.types import Integer, Text, Float
 import airportsdata
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables. Environment variables are stored in .env file where sensitive data is kept. This file is ignored by git on purpose. 
 load_dotenv()
 
 
@@ -35,7 +35,7 @@ def airlabs_airlines_data_into_sql():
     Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
     dataframe = pd.DataFrame.from_dict(airlabs_airlines_response_data())
     dataframe.to_sql(
                     'airlines_database',
@@ -57,7 +57,7 @@ def airlabs_flights_response_data() -> Dict:
     Function retrieves flights data database in json dictionary format.
     """
     params = {
-    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key, for testing purpose I will leave it
+    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key
     'dep_iata' : '',
     'arr_iata' : ''
     }
@@ -72,7 +72,7 @@ def airlabs_flights_data_into_sql():
     Function transforms .json data from AIRLABS_flights_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
     dataframe = pd.DataFrame.from_dict(airlabs_flights_response_data())
     dataframe.to_sql(
                     'flights_database',
@@ -111,7 +111,7 @@ def airlabs_schedules_response_data() -> Dict:
     Function retrieves flight schedules database for specific airport in json dictionary format.
     """
     params = {
-    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key, for testing purpose I will leave it
+    'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key
     'dep_iata' : 'OSL'  # This value will be variable in future. API requires search value and it is not possible to search by empty value.
     }
     method = 'schedules'  # One of AIRLABS API's databases
@@ -125,7 +125,7 @@ def airlabs_schedules_data_into_sql():
     Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
-    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
     dataframe = pd.DataFrame.from_dict(airlabs_schedules_response_data())
     dataframe.to_sql(
                     'schedules_database',
@@ -190,7 +190,7 @@ def airports_data_into_sql():
     """
     Function transforms dataframe into SQL table. 
     """
-    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key, for testing purpose I will leave it
+    engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
     dataframe = pd.DataFrame.from_dict(airports_module_dataframe())
     dataframe.to_sql(
                     'airport_database_table',

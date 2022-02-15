@@ -18,15 +18,20 @@ class Airport_database(db.Model):  # SQLalchemy model
     city = db.Column(db.String(100), unique=False, nullable=False)
     name_city = db.Column(db.String(100), unique=False, nullable=False)
 
-    def as_self(self):
-        return self.name_city
+
+    def __init__(self, index, iata, name, city, name_city):
+        self.index = index
+        self.iata = iata
+        self.name =name
+        self.city = city
+        self.name_city = name_city
 
 
 @app.route("/", methods=["POST", "GET"])
 def home():
     if request.method == "GET":
         database_data = Airport_database.query.all()
-        airlines = [i.as_self() for i in database_data]
+        airlines = [i.name_city for i in database_data]
     return render_template("index.html",
                            airlines=airlines)
     
