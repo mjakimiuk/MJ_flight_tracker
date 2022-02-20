@@ -4,9 +4,9 @@
 
 {% block content %}
 <h1>You submited locations!</h1>
-<div class="container">
-  <div class="row">
-    <table class="table table-bordered">
+<div class="container.is-fullhd">
+  <div class="table-container">
+    <table class="table is-striped">
       <tr>
         <th>index</th>
         <th>aircraft_icao</th>
@@ -18,8 +18,6 @@
         <th>arr_icao</th>
         <th>arr_terminal</th>
         <th>arr_time</th>
-        <th>arr_time_ts</th>
-        <th>arr_time_utc</th>
         <th>cs_airline_iata</th>
         <th>cs_flight_iata</th>
         <th>cs_flight_number</th>
@@ -49,8 +47,6 @@
         <td>{{ i.arr_icao }}</td>
         <td>{{ i.arr_terminal }}</td>
         <td>{{ i.arr_time }}</td>
-        <td>{{ i.arr_time_ts }}</td>
-        <td>{{ i.arr_time_utc }}</td>
         <td>{{ i.cs_airline_iata }}</td>
         <td>{{ i.cs_flight_iata }}</td>
         <td>{{ i.cs_flight_number }}</td>
