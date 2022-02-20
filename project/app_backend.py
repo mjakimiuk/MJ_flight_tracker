@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.types import Integer, Text, Float
+import psycopg2
 import airportsdata
 from dotenv import load_dotenv
 
@@ -52,14 +53,14 @@ def airlabs_airlines_data_into_sql():
                     )
 
 
-def airlabs_flights_response_data() -> Dict:
+def airlabs_flights_response_data(departure,arrival) -> Dict:
     """
     Function retrieves flights data database in json dictionary format.
     """
     params = {
     'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key
-    'dep_iata' : '',
-    'arr_iata' : ''
+    'dep_iata' : departure,
+    'arr_iata' : arrival
     }
     method = 'flights'  # One of AIRLABS API's databases
     api_result = requests.get(api_base+method, params)
@@ -67,13 +68,13 @@ def airlabs_flights_response_data() -> Dict:
     return api_response['response']
 
 
-def airlabs_flights_data_into_sql():
+def airlabs_flights_data_into_sql(departure,arrival):
     """
     Function transforms .json data from AIRLABS_flights_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
     engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airlabs_flights_response_data())
+    dataframe = pd.DataFrame.from_dict(airlabs_flights_response_data(departure,arrival))
     dataframe.to_sql(
                     'flights_database',
                     engine,
@@ -106,13 +107,14 @@ def airlabs_flights_data_into_sql():
                     )
 
 
-def airlabs_schedules_response_data() -> Dict:
+def airlabs_schedules_response_data(departure,arrival) -> Dict:
     """
     Function retrieves flight schedules database for specific airport in json dictionary format.
     """
     params = {
     'api_key': os.environ["AIRLABS_API_KEY"],  # API personal key
-    'dep_iata' : 'OSL'  # This value will be variable in future. API requires search value and it is not possible to search by empty value.
+    'dep_iata' : departure,
+    'arr_iata' : arrival
     }
     method = 'schedules'  # One of AIRLABS API's databases
     api_result = requests.get(api_base+method, params)
@@ -120,13 +122,13 @@ def airlabs_schedules_response_data() -> Dict:
     return api_response['response']
 
 
-def airlabs_schedules_data_into_sql():
+def airlabs_schedules_data_into_sql(departure,arrival):
     """
     Function transforms .json data from AIRLABS_airlines_response_data() function to Pandas Dataframe.
     Dataframe is then sent to SQL database
     """
     engine = create_engine(os.environ["CONNECTION_LINK"], echo=True)  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airlabs_schedules_response_data())
+    dataframe = pd.DataFrame.from_dict(airlabs_schedules_response_data(departure,arrival))
     dataframe.to_sql(
                     'schedules_database',
                     engine,
@@ -139,9 +141,9 @@ def airlabs_schedules_data_into_sql():
                         "airline_iata": Text,
                         "airline_icao":  Text,
                         "arr_baggage":  Text,
-                        "arr_estimated":  Text,
-                        "arr_estimated_ts":  Text,
-                        "arr_estimated_utc":  Text,
+                        #"arr_estimated":  Text,
+                        #"arr_estimated_ts":  Text,
+                        #"arr_estimated_utc":  Text,
                         "arr_gate":  Text,
                         "arr_iata":  Text,
                         "arr_icao":  Text,
@@ -153,12 +155,12 @@ def airlabs_schedules_data_into_sql():
                         "cs_flight_iata":  Text,
                         "cs_flight_number":  Text,
                         "delayed":  Integer,
-                        "dep_actual":  Text,
-                        "dep_actual_ts":  Text,
-                        "dep_actual_utc":  Text,
-                        "dep_estimated":  Text,
-                        "dep_estimated_ts":  Text,
-                        "dep_estimated_utc":  Text,
+                        #"dep_actual":  Text,
+                        #"dep_actual_ts":  Text,
+                        #"dep_actual_utc":  Text,
+                        #"dep_estimated":  Text,
+                        #"dep_estimated_ts":  Text,
+                        #"dep_estimated_utc":  Text,
                         "dep_gate":  Text,
                         "dep_iata":  Text,
                         "dep_icao":  Text,
@@ -209,5 +211,5 @@ def airports_data_into_sql():
 
 
 if __name__ == '__main__':
-    airlabs_airlines_data_into_sql()
+    airports_data_into_sql()
 
