@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block autocomplete %}
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">  
-    </script>  
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">  
-    </script>  
-    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
+    </script>
+
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css"
-        rel="stylesheet" type="text/css" />  
+        rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
@@ -40,8 +40,8 @@
 <script>
     $( function() {
       var availableTags = [
-          {% for airline in airlines %}
-              "{{airline}}",
+          {% for airport in airports %}
+              "{{airport}}",
           {% endfor %}
       ];
       $( "#tags1" ).autocomplete({
@@ -52,8 +52,8 @@
        <script>
           $( function() {
             var availableTags = [
-                {% for airline in airlines %}
-                    "{{airline}}",
+                {% for airport in airports %}
+                    "{{airport}}",
                 {% endfor %}
             ];
             $( "#tags2" ).autocomplete({

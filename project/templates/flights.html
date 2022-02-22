@@ -3,72 +3,87 @@
 
 
 {% block content %}
-<h1>You submited locations!</h1>
+<h1>You submited locations! From: {{ destination[0] }} To: {{ destination[1] }}</h1>
 <div class="container.is-fullhd">
   <div class="table-container">
     <table class="table is-striped">
       <tr>
         <th>index</th>
-        <th>aircraft_icao</th>
-        <th>airline_iata</th>
-        <th>airline_icao</th>
-        <th>arr_baggage</th>
-        <th>arr_gate</th>
-        <th>arr_iata</th>
-        <th>arr_icao</th>
-        <th>arr_terminal</th>
-        <th>arr_time</th>
-        <th>cs_airline_iata</th>
-        <th>cs_flight_iata</th>
-        <th>cs_flight_number</th>
-        <th>delayed</th>
-        <th>dep_gate</th>
-        <th>dep_iata</th>
-        <th>dep_icao</th>
-        <th>dep_terminal</th>
-        <th>dep_time</th>
-        <th>dep_time_ts</th>
-        <th>dep_time_utc</th>
-        <th>duration</th>
-        <th>flight_iata</th>
-        <th>flight_icao</th>
-        <th>flight_number</th>
-        <th>status</th>
+        <th>Departure</th>
+        <th>Flight</th>
+        <th>Departure
+          <br>
+          gate
+        </th>
+        <th>Departure
+          <br>
+          terminal
+        </th>
+        <th>Arrival
+          <br>
+          gate
+        </th>
+        <th>Arrival
+          <br>
+          terminal
+        </th>
+
+        <th>Baggage
+          <br>
+          belt
+        </th>
+        <th>Arrival</th>
+        <th>Delayed</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th>Follow
+          <br>
+          flight
+        </th>
+
       </tr>
       {% for i in database_data %}
+
       <tr>
         <td>{{ i.index }}</td>
-        <td>{{ i.aircraft_icao }}</td>
-        <td>{{ i.airline_iata }}</td>
-        <td>{{ i.airline_icao }}</td>
-        <td>{{ i.arr_baggage }}</td>
-        <td>{{ i.arr_gate }}</td>
-        <td>{{ i.arr_iata }}</td>
-        <td>{{ i.arr_icao }}</td>
-        <td>{{ i.arr_terminal }}</td>
-        <td>{{ i.arr_time }}</td>
-        <td>{{ i.cs_airline_iata }}</td>
-        <td>{{ i.cs_flight_iata }}</td>
-        <td>{{ i.cs_flight_number }}</td>
-        <td>{{ i.delayed }}</td>
-        <td>{{ i.dep_gate }}</td>
-        <td>{{ i.dep_iata }}</td>
-        <td>{{ i.dep_icao }}</td>
-        <td>{{ i.dep_terminal }}</td>
         <td>{{ i.dep_time }}</td>
-        <td>{{ i.dep_time_ts }}</td>
-        <td>{{ i.dep_time_utc }}</td>
+        <td>{{ i.flight_iata }}
+          <br>
+          {{ airline_names[i.airline_icao] }}
+        </td>
+        <td>{{ i.dep_gate }}</td>
+        <td>{{ i.dep_terminal }}</td>
+        <td>{{ i.arr_gate }}</td>
+        <td>{{ i.arr_terminal }}</td>
+        <td>{{ i.arr_baggage }}</td>
+        <td>{{ i.arr_time }}</td>
+        <td>{{ i.delayed }}</td>
         <td>{{ i.duration }}</td>
-        <td>{{ i.flight_iata }}</td>
-        <td>{{ i.flight_icao }}</td>
-        <td>{{ i.flight_number }}</td>
         <td>{{ i.status }}</td>
-        
+        <td><form>
+          <a href=# id=test><button class='button'>Test</button></a>
+      </form></td>
       </tr>
+
       {% endfor %}
     </table>
   </div>
 </div>
 
-{% endblock %}
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+        $(function() {
+          $('a#test').on('click', function(e) {
+            e.preventDefault()
+            $.getJSON('/background_process_test',
+                function(data) {
+              //do nothing
+            });
+            return false;
+          });
+        });
+</script>
+
+
+{% endblock %}
