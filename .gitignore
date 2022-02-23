@@ -14,4 +14,4 @@ build/
 *.egg-info/
 .vscode/
 .mypy_cache/
-
+.env

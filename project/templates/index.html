@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block autocomplete %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
+    </script>
+
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css"
+        rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<h1 class="title">
+  Flight status tracker
+</h1>
+<h2 class="subtitle">
+  Easy flight tracking for you
+</h2>
+
+<form action="/flights" method="POST" class="field">
+    <div class="field">
+      <label for="airport_1">From: </label>
+      <input type="text" name="airport_1" id="tags1" required>
+    </div>
+    <div class="field">
+      <label for="airport_2">To: </label>
+      <input type="text" name="airport_2" id="tags2" required>
+    </div>
+    <div class="field">
+      <input type="submit" value="Submit" class="button is-primary">
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $( function() {
+      var availableTags = [
+          {% for airport in airports %}
+              "{{airport}}",
+          {% endfor %}
+      ];
+      $( "#tags1" ).autocomplete({
+        source: availableTags
+      });
+    } );
+    </script>
+       <script>
+          $( function() {
+            var availableTags = [
+                {% for airport in airports %}
+                    "{{airport}}",
+                {% endfor %}
+            ];
+            $( "#tags2" ).autocomplete({
+              source: availableTags
+            });
+          } );
+          </script>
+
+{% endblock %}
