@@ -10,6 +10,7 @@
       <tr>
         <th>index</th>
         <th>Departure</th>
+        <th>Departure actual</th>
         <th>Flight</th>
         <th>Departure
           <br>
@@ -33,6 +34,7 @@
           belt
         </th>
         <th>Arrival</th>
+        <th>Arrival actual</th>
         <th>Delayed</th>
         <th>Duration</th>
         <th>Status</th>
@@ -42,11 +44,12 @@
         </th>
 
       </tr>
-      {% for i in database_data %}
+      {% for i,y in zip(database_data,actual_time) %}
 
       <tr>
         <td>{{ i.index }}</td>
         <td>{{ i.dep_time }}</td>
+        <td>{{ y.departure }}</td>
         <td>{{ i.flight_iata }}
           <br>
           {{ airline_names[i.airline_icao] }}
@@ -57,6 +60,7 @@
         <td>{{ i.arr_terminal }}</td>
         <td>{{ i.arr_baggage }}</td>
         <td>{{ i.arr_time }}</td>
+        <td>{{ y.arrival }}</td>
         <td>{{ i.delayed }}</td>
         <td>{{ i.duration }}</td>
         <td>{{ i.status }}</td>

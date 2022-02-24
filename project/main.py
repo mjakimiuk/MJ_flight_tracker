@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 from flask_login import current_user, login_required
 
-from .app_backend import airlabs_schedules_data_into_sql
+from .app_backend import airlabs_schedules_data_into_sql, flight_dep_arr_actual
 from .models import Airlines_database, Airport_database, Airport_Schedules_database
 from .sendgrid_app import send_email_sendgrid
 
@@ -41,11 +41,16 @@ def flights():
     airline_names_list = {i.icao_code: i.name for i in airline_names}
     destination_tuple = (request.form.get("airport_1"), request.form.get("airport_2"))
 
+    flights_list = [i.flight_iata for i in database_data]
+    actual_time = [flight_dep_arr_actual(i) for i in flights_list]
+
     return render_template(
         "flights.html",
         database_data=database_data,
         airline_names=airline_names_list,
         destination=destination_tuple,
+        actual_time=actual_time,
+        zip=zip,
     )
 
 

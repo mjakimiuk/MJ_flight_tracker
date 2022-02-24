@@ -1,11 +1,14 @@
 import os
+from collections import namedtuple
 from typing import Dict
 
 import airportsdata
 import numpy as np
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from requests_html import HTMLSession
 from sqlalchemy import create_engine
 from sqlalchemy.types import Float, Integer, Text
 
@@ -232,6 +235,26 @@ def airports_data_into_sql():
             "name_city": Text,
         },
     )
+
+
+def flight_dep_arr_actual(flight_number):
+    Flight = namedtuple("Flight", ["departure", "arrival"])
+    if flight_number is None:
+        F = Flight("no data", "no data")
+        return F
+    text = flight_number
+    session = HTMLSession()
+    response = session.get("https://www.google.com/search?q=" + text + "+flight")
+    soup = BeautifulSoup(response.content, "lxml")
+    actual_time = soup.find_all("div", {"class": "KUI09c Efa9ze"})
+    if not actual_time:
+        actual_time = soup.find_all("div", {"class": "KUI09c KskRob"})
+    if not actual_time:
+        F = Flight("no data", "no data")
+        return F
+    scraped_data = [i.text for i in actual_time[0:2]]
+    F = Flight(scraped_data[0], scraped_data[1])
+    return F
 
 
 if __name__ == "__main__":
