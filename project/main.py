@@ -1,11 +1,30 @@
 from flask import Blueprint, render_template, request
 from flask_login import current_user, login_required
 
-from .app_backend import airlabs_schedules_data_into_sql, flight_dep_arr_actual
+from .app_backend import airlabs_schedules_data_into_sql
 from .models import Airlines_database, Airport_database, Airport_Schedules_database
 from .sendgrid_app import send_email_sendgrid
 
 main = Blueprint("main", __name__)
+
+headings = (
+    "Index",
+    "Departure",
+    "Estimated Departure",
+    "Flight",
+    "Airline",
+    "Departure gate",
+    "Departure terminal",
+    "Arrival gate",
+    "Arrival terminal",
+    "Baggage belt",
+    "Arrival",
+    "Estimated Arrival",
+    "Delayed",
+    "Duration",
+    "Status",
+    "Follow flight",
+)
 
 
 @main.route("/")
@@ -32,25 +51,50 @@ def flights():
     arrival = Airport_database.query.filter(
         Airport_database.name_city == request.form.get("airport_2")
     ).first()
-    airlabs_schedules_data_into_sql(departure.iata, arrival.iata)
-    database_data = Airport_Schedules_database.query.all()
-    airline_names_codes = [i.airline_icao for i in database_data]
-    airline_names = Airlines_database.query.filter(
-        Airlines_database.icao_code.in_(airline_names_codes)
-    )
-    airline_names_list = {i.icao_code: i.name for i in airline_names}
-    destination_tuple = (request.form.get("airport_1"), request.form.get("airport_2"))
-
-    flights_list = [i.flight_iata for i in database_data]
-    actual_time = [flight_dep_arr_actual(i) for i in flights_list]
+    no_data = ""
+    if airlabs_schedules_data_into_sql(departure.iata, arrival.iata) is False:
+        no_data = "No Data"
+        data_in_table = "No Data"
+        destination_tuple = "No Data"
+    else:
+        airlabs_schedules_data_into_sql(departure.iata, arrival.iata)
+        database_data = Airport_Schedules_database.query.all()
+        airline_names_codes = [i.airline_icao for i in database_data]
+        airline_names = Airlines_database.query.filter(
+            Airlines_database.icao_code.in_(airline_names_codes)
+        )
+        airline_names_list = {i.icao_code: i.name for i in airline_names}
+        destination_tuple = (
+            request.form.get("airport_1"),
+            request.form.get("airport_2"),
+        )
+        data_in_table = tuple(
+            (
+                i.index,
+                i.dep_time,
+                i.dep_estimated,
+                i.flight_iata,
+                airline_names_list.get(i.airline_icao, "No Data"),
+                i.dep_gate,
+                i.dep_terminal,
+                i.arr_gate,
+                i.arr_terminal,
+                i.arr_baggage,
+                i.arr_time,
+                i.arr_estimated,
+                i.delayed,
+                i.duration,
+                i.status,
+            )
+            for i in database_data
+        )
 
     return render_template(
         "flights.html",
-        database_data=database_data,
-        airline_names=airline_names_list,
+        data_in_table=data_in_table,
         destination=destination_tuple,
-        actual_time=actual_time,
-        zip=zip,
+        headings=headings,
+        no_data=no_data,
     )
 
 

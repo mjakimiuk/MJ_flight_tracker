@@ -6,9 +6,7 @@ import airportsdata
 import numpy as np
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from requests_html import HTMLSession
 from sqlalchemy import create_engine
 from sqlalchemy.types import Float, Integer, Text
 
@@ -19,6 +17,23 @@ load_dotenv()
 
 # Module constants
 API_BASE = "http://airlabs.co/api/v9/"
+flight = namedtuple("Flight", ["departure", "arrival"])
+MAX_THREADS = 30
+
+
+def headers():
+    return [
+        "index",
+        "arr_estimated",
+        "arr_estimated_ts",
+        "arr_estimated_utc",
+        "dep_actual",
+        "dep_actual_ts",
+        "dep_actual_utc",
+        "dep_estimated",
+        "dep_estimated_ts",
+        "dep_estimated_utc",
+    ]
 
 
 def airlabs_airlines_response_data() -> Dict:
@@ -146,21 +161,29 @@ def airlabs_schedules_data_into_sql(departure, arrival):
     dataframe = pd.DataFrame.from_dict(
         airlabs_schedules_response_data(departure, arrival)
     )
-    dataframe.to_sql(
+    if dataframe.empty:
+        return False
+
+    for i in headers():
+        if i not in dataframe:
+            dataframe[i] = "-"
+    dataframe["index"] = dataframe.index
+    dataframe_final = dataframe.fillna("-")
+    dataframe_final.to_sql(
         "schedules_database",
         engine,
         if_exists="replace",
         index=True,
         chunksize=500,
         dtype={
-            "index": Integer,
+            "index": Text,
             "aircraft_icao": Text,
             "airline_iata": Text,
             "airline_icao": Text,
             "arr_baggage": Text,
-            # "arr_estimated":  Text,
-            # "arr_estimated_ts":  Text,
-            # "arr_estimated_utc":  Text,
+            "arr_estimated": Text,
+            "arr_estimated_ts": Text,
+            "arr_estimated_utc": Text,
             "arr_gate": Text,
             "arr_iata": Text,
             "arr_icao": Text,
@@ -171,13 +194,13 @@ def airlabs_schedules_data_into_sql(departure, arrival):
             "cs_airline_iata": Text,
             "cs_flight_iata": Text,
             "cs_flight_number": Text,
-            "delayed": Integer,
-            # "dep_actual":  Text,
-            # "dep_actual_ts":  Text,
-            # "dep_actual_utc":  Text,
-            # "dep_estimated":  Text,
-            # "dep_estimated_ts":  Text,
-            # "dep_estimated_utc":  Text,
+            "delayed": Text,
+            "dep_actual": Text,
+            "dep_actual_ts": Text,
+            "dep_actual_utc": Text,
+            "dep_estimated": Text,
+            "dep_estimated_ts": Text,
+            "dep_estimated_utc": Text,
             "dep_gate": Text,
             "dep_iata": Text,
             "dep_icao": Text,
@@ -237,25 +260,5 @@ def airports_data_into_sql():
     )
 
 
-def flight_dep_arr_actual(flight_number):
-    Flight = namedtuple("Flight", ["departure", "arrival"])
-    if flight_number is None:
-        F = Flight("no data", "no data")
-        return F
-    text = flight_number
-    session = HTMLSession()
-    response = session.get("https://www.google.com/search?q=" + text + "+flight")
-    soup = BeautifulSoup(response.content, "lxml")
-    actual_time = soup.find_all("div", {"class": "KUI09c Efa9ze"})
-    if not actual_time:
-        actual_time = soup.find_all("div", {"class": "KUI09c KskRob"})
-    if not actual_time:
-        F = Flight("no data", "no data")
-        return F
-    scraped_data = [i.text for i in actual_time[0:2]]
-    F = Flight(scraped_data[0], scraped_data[1])
-    return F
-
-
 if __name__ == "__main__":
-    airports_data_into_sql()
+    pass
