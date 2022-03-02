@@ -1,17 +1,12 @@
-import os
 from typing import Dict
 
 import airportsdata
 import requests
-from dotenv import load_dotenv
 
+from .config import AIRLABS_API_KEY, API_BASE
 from .db import session
 from .models import Airport
 
-load_dotenv()
-
-API_KEY = os.environ["AIRLABS_API_KEY"]
-API_BASE = "http://airlabs.co/api/v9/"
 MAX_THREADS = 30
 
 
@@ -20,7 +15,7 @@ def _airlabs_airlines_response_data() -> Dict:
     Function retrieves airlines name database in json dictionary format.
     """
     params = {
-        "api_key": API_KEY,
+        "api_key": AIRLABS_API_KEY,
         "name": "",  # Get results sorted by name
     }
     method = "airlines"  # One of AIRLABS API's databases
@@ -42,7 +37,7 @@ def _airlabs_flights_response_data(departure, arrival) -> Dict:
     Function retrieves flights data database in json dictionary format.
     """
     params = {
-        "api_key": API_KEY,
+        "api_key": AIRLABS_API_KEY,
         "dep_iata": departure,
         "arr_iata": arrival,
     }
@@ -66,7 +61,7 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
     specific airport in json dictionary format.
     """
     params = {
-        "api_key": API_KEY,  # API personal key
+        "api_key": AIRLABS_API_KEY,  # API personal key
         "dep_iata": departure,
         "arr_iata": arrival,
     }

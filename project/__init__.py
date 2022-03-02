@@ -1,20 +1,14 @@
-import os
-
-from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
-load_dotenv()
+from .config import DATABASE_URL, FLASK_KEY
 
 
 def create_app():
     app = Flask(__name__)
-
-    # TODO: could move dotenv and all config variable parsing to one config.py
-    # module
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["CONNECTION_LINK"]
-    app.config["SECRET_KEY"] = os.environ["FLASK_KEY"]
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+    app.config["SECRET_KEY"] = FLASK_KEY
 
     db = SQLAlchemy()
     db.init_app(app)
