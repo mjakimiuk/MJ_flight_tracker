@@ -7,18 +7,21 @@ import numpy as np
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
 from sqlalchemy.types import Float, Integer, Text
 
-# Load environment variables. Environment variables are stored in .env file
-# where sensitive data is kept. This file is ignored by git on purpose.
+from .db import session
+
+engine = None
+
 load_dotenv()
 
 
-# Module constants
 API_BASE = "http://airlabs.co/api/v9/"
-flight = namedtuple("Flight", ["departure", "arrival"])
 MAX_THREADS = 30
+
+# used?
+# flight = namedtuple("Flight",
+#                     ["departure", "arrival"])
 
 
 def headers():
@@ -57,9 +60,7 @@ def airlabs_airlines_data_into_sql():
     Function transforms .json data from AIRLABS_airlines_response_data()
     function to Pandas Dataframe. Dataframe is then sent to SQL database
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
+    breakpoint()
     dataframe = pd.DataFrame.from_dict(airlabs_airlines_response_data())
     dataframe.to_sql(
         "airlines_database",
@@ -96,9 +97,7 @@ def airlabs_flights_data_into_sql(departure, arrival):
     Function transforms .json data from AIRLABS_flights_response_data()
     function to Pandas Dataframe. Dataframe is then sent to SQL database
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
+    breakpoint()
     dataframe = pd.DataFrame.from_dict(
         airlabs_flights_response_data(departure, arrival)
     )
@@ -155,9 +154,7 @@ def airlabs_schedules_data_into_sql(departure, arrival):
     Function transforms .json data from AIRLABS_airlines_response_data()
     function to Pandas Dataframe. Dataframe is then sent to SQL database
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
+    breakpoint()
     dataframe = pd.DataFrame.from_dict(
         airlabs_schedules_response_data(departure, arrival)
     )
@@ -240,9 +237,7 @@ def airports_data_into_sql():
     """
     Function transforms dataframe into SQL table.
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
+    breakpoint()
     dataframe = pd.DataFrame.from_dict(airports_module_dataframe())
     dataframe.to_sql(
         "airport_database_table",
