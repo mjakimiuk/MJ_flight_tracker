@@ -17,17 +17,16 @@ class User(UserMixin, Base):
 class Airport(Base):
     __tablename__ = "airport"
     id = Column(Integer, primary_key=True)
-    index = Column(String(100), unique=False, nullable=False, primary_key=True)
-    iata = Column(String(100), unique=False, nullable=False)
-    name = Column(String(100), unique=False, nullable=False)
     city = Column(String(100), unique=False, nullable=False)
-    name_city = Column(String(100), unique=False, nullable=False)
+    country = Column(String(100), unique=False, nullable=False)
+    iata = Column(String(100), unique=False, nullable=False)
+    icao = Column(String(100), unique=False, nullable=False)
+    name = Column(String(100), unique=False, nullable=False)
 
 
 class Schedules(Base):
     __tablename__ = "schedules"
     id = Column(Integer, primary_key=True)
-    index = Column(String(100), unique=False, nullable=False, primary_key=True)
     aircraft_icao = Column(String(100), unique=False, nullable=False)
     airline_iata = Column(String(100), unique=False, nullable=False)
     airline_icao = Column(String(100), unique=False, nullable=False)
@@ -69,7 +68,6 @@ class Schedules(Base):
 class Airlines(Base):
     __tablename__ = "airlines"
     id = Column(Integer, primary_key=True)
-    index = Column(String(100), unique=False, nullable=False, primary_key=True)
     icao_code = Column(String(100), unique=False, nullable=False)
     iata_code = Column(String(100), unique=False, nullable=False)
     name = Column(String(100), unique=False, nullable=False)
