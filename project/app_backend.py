@@ -1,49 +1,19 @@
-import os
-from collections import namedtuple
 from typing import Dict
 
 import airportsdata
-import numpy as np
-import pandas as pd
 import requests
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.types import Float, Integer, Text
 
-# Load environment variables. Environment variables are stored in .env file
-# where sensitive data is kept. This file is ignored by git on purpose.
-load_dotenv()
+from .config import AIRLABS_API_KEY, API_BASE
+from .db import session
+from .models import Airlines, Airport, Schedules
 
 
-# Module constants
-API_BASE = "http://airlabs.co/api/v9/"
-flight = namedtuple("Flight", ["departure", "arrival"])
-MAX_THREADS = 30
-
-
-def headers():
-    return [
-        "index",
-        "arr_estimated",
-        "arr_estimated_ts",
-        "arr_estimated_utc",
-        "dep_actual",
-        "dep_actual_ts",
-        "dep_actual_utc",
-        "dep_estimated",
-        "dep_estimated_ts",
-        "dep_estimated_utc",
-    ]
-
-
-def airlabs_airlines_response_data() -> Dict:
+def _airlabs_airlines_response_data() -> Dict:
     """
     Function retrieves airlines name database in json dictionary format.
     """
     params = {
-        "api_key": os.environ[
-            "AIRLABS_API_KEY"
-        ],  # API personal key, for testing purpose I will leave it
+        "api_key": AIRLABS_API_KEY,
         "name": "",  # Get results sorted by name
     }
     method = "airlines"  # One of AIRLABS API's databases
@@ -54,38 +24,34 @@ def airlabs_airlines_response_data() -> Dict:
 
 def airlabs_airlines_data_into_sql():
     """
-    Function transforms .json data from AIRLABS_airlines_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import airlines
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airlabs_airlines_response_data())
-    dataframe.to_sql(
-        "airlines_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Integer,
-            "icao_code": Text,
-            "iata_code": Text,
-            "name": Text,
-        },
-    )
+    airlines = _airlabs_airlines_response_data()
+    for airline in airlines:
+        session.add(
+            Airlines(
+                icao_code=airline["icao_code"]
+                if airline.get("icao_code")
+                else "no data",
+                iata_code=airline["iata_code"]
+                if airline.get("iata_code")
+                else "no data",
+                name=airline["name"] if airline.get("name") else "no data",
+            )
+        )
+    session.commit()
 
 
-def airlabs_flights_response_data(departure, arrival) -> Dict:
+def _airlabs_flights_response_data(departure, arrival) -> Dict:
     """
     Function retrieves flights data database in json dictionary format.
     """
     params = {
-        "api_key": os.environ["AIRLABS_API_KEY"],  # API personal key
+        "api_key": AIRLABS_API_KEY,
         "dep_iata": departure,
         "arr_iata": arrival,
     }
-    method = "flights"  # One of AIRLABS API's databases
+    method = "flights"
     api_result = requests.get(API_BASE + method, params)
     api_response = api_result.json()
     return api_response["response"]
@@ -93,45 +59,11 @@ def airlabs_flights_response_data(departure, arrival) -> Dict:
 
 def airlabs_flights_data_into_sql(departure, arrival):
     """
-    Function transforms .json data from AIRLABS_flights_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import flights
+
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(
-        airlabs_flights_response_data(departure, arrival)
-    )
-    dataframe.to_sql(
-        "flights_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Integer,
-            "aircraft_icao": Text,
-            "airline_iata": Text,
-            "airline_icao": Text,
-            "alt": Integer,
-            "arr_iata": Text,
-            "dep_iata": Text,
-            "dir": Integer,
-            "flag": Text,
-            "flight_iata": Text,
-            "flight_icao": Text,
-            "flight_number": Text,
-            "hex": Text,
-            "lat": Float,
-            "lng": Float,
-            "reg_number": Text,
-            "speed": Integer,
-            "squawk": Text,
-            "status": Text,
-            "updated": Integer,
-            "v_speed": Float,
-        },
-    )
+    # flights = _airlabs_flights_response_data(departure, arrival)
+    pass
 
 
 def airlabs_schedules_response_data(departure, arrival) -> Dict:
@@ -140,7 +72,7 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
     specific airport in json dictionary format.
     """
     params = {
-        "api_key": os.environ["AIRLABS_API_KEY"],  # API personal key
+        "api_key": AIRLABS_API_KEY,
         "dep_iata": departure,
         "arr_iata": arrival,
     }
@@ -152,113 +84,125 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
 
 def airlabs_schedules_data_into_sql(departure, arrival):
     """
-    Function transforms .json data from AIRLABS_airlines_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import schedules
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(
-        airlabs_schedules_response_data(departure, arrival)
-    )
-    if dataframe.empty:
+    schedules = airlabs_schedules_response_data(departure, arrival)
+    if not schedules:
         return False
+    session.query(Schedules).delete()
+    for flights in schedules:
 
-    for i in headers():
-        if i not in dataframe:
-            dataframe[i] = "-"
-    dataframe["index"] = dataframe.index
-    dataframe_final = dataframe.fillna("-")
-    dataframe_final.to_sql(
-        "schedules_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Text,
-            "aircraft_icao": Text,
-            "airline_iata": Text,
-            "airline_icao": Text,
-            "arr_baggage": Text,
-            "arr_estimated": Text,
-            "arr_estimated_ts": Text,
-            "arr_estimated_utc": Text,
-            "arr_gate": Text,
-            "arr_iata": Text,
-            "arr_icao": Text,
-            "arr_terminal": Text,
-            "arr_time": Text,
-            "arr_time_ts": Text,
-            "arr_time_utc": Text,
-            "cs_airline_iata": Text,
-            "cs_flight_iata": Text,
-            "cs_flight_number": Text,
-            "delayed": Text,
-            "dep_actual": Text,
-            "dep_actual_ts": Text,
-            "dep_actual_utc": Text,
-            "dep_estimated": Text,
-            "dep_estimated_ts": Text,
-            "dep_estimated_utc": Text,
-            "dep_gate": Text,
-            "dep_iata": Text,
-            "dep_icao": Text,
-            "dep_terminal": Text,
-            "dep_time": Text,
-            "dep_time_ts": Text,
-            "dep_time_utc": Text,
-            "duration": Text,
-            "flight_iata": Text,
-            "flight_icao": Text,
-            "flight_number": Text,
-            "status": Text,
-        },
-    )
-
-
-def airports_module_dataframe():
-    """
-    Function uses aiportsdata module to retrieve
-    dataframe with airports names and IATA codes.
-    """
-    airports = airportsdata.load()
-    dataframe_base = pd.DataFrame.from_dict(airports, orient="index")
-    dataframe_base["iata"].replace(
-        "", np.nan, inplace=True
-    )  # replace empty cells with NaN
-    dataframe_new = dataframe_base[["iata", "name", "city"]].dropna(
-        thresh=3
-    )  # drop cells with NaN value
-    dataframe_new["name_city"] = dataframe_new[["name", "city"]].agg(
-        " - ".join, axis=1
-    )  # 3rd column added with Airport name + City Name
-    return dataframe_new
+        session.add(
+            Schedules(
+                aircraft_icao=flights["aircraft_icao"]
+                if flights.get("aircraft_icao")
+                else "-",
+                airline_iata=flights["airline_iata"]
+                if flights.get("airline_iata")
+                else "-",
+                airline_icao=flights["airline_icao"]
+                if flights.get("airline_icao")
+                else "-",
+                arr_baggage=flights["arr_baggage"]
+                if flights.get("arr_baggage")
+                else "-",
+                arr_estimated=flights["arr_estimated"]
+                if flights.get("arr_estimated")
+                else "-",
+                arr_estimated_ts=flights["arr_estimated_ts"]
+                if flights.get("arr_estimated_ts")
+                else "-",
+                arr_estimated_utc=flights["arr_estimated_utc"]
+                if flights.get("arr_estimated_utc")
+                else "-",
+                arr_gate=flights["arr_gate"] if flights.get("arr_gate") else "-",
+                arr_iata=flights["arr_iata"] if flights.get("arr_iata") else "-",
+                arr_icao=flights["arr_icao"] if flights.get("arr_icao") else "-",
+                arr_terminal=flights["arr_terminal"]
+                if flights.get("arr_terminal")
+                else "-",
+                arr_time=flights["arr_time"] if flights.get("arr_time") else "-",
+                arr_time_ts=flights["arr_time_ts"]
+                if flights.get("arr_time_ts")
+                else "-",
+                arr_time_utc=flights["arr_time_utc"]
+                if flights.get("arr_time_utc")
+                else "-",
+                cs_airline_iata=flights["cs_airline_iata"]
+                if flights.get("cs_airline_iata")
+                else "-",
+                cs_flight_iata=flights["cs_flight_iata"]
+                if flights.get("cs_flight_iata")
+                else "-",
+                cs_flight_number=flights["cs_flight_number"]
+                if flights.get("cs_flight_number")
+                else "-",
+                delayed=flights["delayed"] if flights.get("delayed") else "-",
+                dep_actual=flights["dep_actual"] if flights.get("dep_actual") else "-",
+                dep_actual_ts=flights["dep_actual_ts"]
+                if flights.get("dep_actual_ts")
+                else "-",
+                dep_actual_utc=flights["dep_actual_utc"]
+                if flights.get("dep_actual_utc")
+                else "-",
+                dep_estimated=flights["dep_estimated"]
+                if flights.get("dep_estimated")
+                else "-",
+                dep_estimated_ts=flights["dep_estimated_ts"]
+                if flights.get("dep_estimated_ts")
+                else "-",
+                dep_estimated_utc=flights["dep_estimated_utc"]
+                if flights.get("dep_estimated_utc")
+                else "-",
+                dep_gate=flights["dep_gate"] if flights.get("dep_gate") else "-",
+                dep_iata=flights["dep_iata"] if flights.get("dep_iata") else "-",
+                dep_icao=flights["dep_icao"] if flights.get("dep_icao") else "-",
+                dep_terminal=flights["dep_terminal"]
+                if flights.get("dep_terminal")
+                else "-",
+                dep_time=flights["dep_time"] if flights.get("dep_time") else "-",
+                dep_time_ts=flights["dep_time_ts"]
+                if flights.get("dep_time_ts")
+                else "-",
+                dep_time_utc=flights["dep_time_utc"]
+                if flights.get("dep_time_utc")
+                else "-",
+                duration=flights["duration"] if flights.get("duration") else "-",
+                flight_iata=flights["flight_iata"]
+                if flights.get("flight_iata")
+                else "-",
+                flight_icao=flights["flight_icao"]
+                if flights.get("flight_icao")
+                else "-",
+                flight_number=flights["flight_number"]
+                if flights.get("flight_number")
+                else "-",
+                status=flights["status"] if flights.get("status") else "-",
+            )
+        )
+    session.commit()
 
 
 def airports_data_into_sql():
     """
-    Function transforms dataframe into SQL table.
+    Function that imports airports
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airports_module_dataframe())
-    dataframe.to_sql(
-        "airport_database_table",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Text,
-            "iata": Text,
-            "name": Text,
-            "city": Text,
-            "name_city": Text,
-        },
-    )
+    airports = airportsdata.load()
+    for airport in airports.values():
+        if airport["iata"]:
+            session.add(
+                Airport(
+                    city=airport["city"],
+                    country=airport["country"],
+                    iata=airport["iata"],
+                    icao=airport["icao"],
+                    name=airport["name"],
+                )
+            )
+    session.commit()
 
 
 if __name__ == "__main__":
-    pass
+    # airports_data_into_sql()
+    # airlabs_schedules_data_into_sql("BGO",'OSL')
+    airlabs_airlines_data_into_sql()

@@ -4,4 +4,15 @@
 <h1 class="title">
   Welcome, {{ name }}!
 </h1>
+
+<form method="POST" action="/profile">
+  <div class="field">
+      <div class="control">
+          <input class="input is-large" type="text" name="api_key" placeholder="API KEY" autofocus="">
+      </div>
+  </div>
+
+  <button class="button is-block is-info is-large is-fullwidth">Submit API</button>
+</form>
+
 {% endblock %}
