@@ -1,3 +1,6 @@
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
 from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,7 +9,7 @@ Base = declarative_base()
 
 
 class User(UserMixin, Base):
-    __tablename__ = "user_flask"
+    __tablename__ = "user"
     id = Column(Integer, primary_key=True)
     email = Column(String(100), unique=True)
     password = Column(String(100))

@@ -7,6 +7,8 @@ from .config import AIRLABS_API_KEY, API_BASE
 from .db import session
 from .models import Airlines, Airport, Schedules
 
+MAX_THREADS = 30
+
 
 def _airlabs_airlines_response_data() -> Dict:
     """
@@ -60,10 +62,9 @@ def _airlabs_flights_response_data(departure, arrival) -> Dict:
 def airlabs_flights_data_into_sql(departure, arrival):
     """
     Function to import flights
-
     """
-    # flights = _airlabs_flights_response_data(departure, arrival)
-    pass
+    flights = _airlabs_flights_response_data(departure, arrival)
+    breakpoint()
 
 
 def airlabs_schedules_response_data(departure, arrival) -> Dict:
@@ -206,3 +207,4 @@ if __name__ == "__main__":
     # airports_data_into_sql()
     # airlabs_schedules_data_into_sql("BGO",'OSL')
     airlabs_airlines_data_into_sql()
+    airports_data_into_sql()

@@ -7,6 +7,8 @@ from .app_backend import airlabs_schedules_data_into_sql
 from .models import Airlines, Airport, Schedules, User
 from .sendgrid_app import send_email_sendgrid
 
+from . import db
+
 main = Blueprint("main", __name__)
 
 headings = (
@@ -32,7 +34,6 @@ headings = (
 @main.route("/")
 @login_required
 def index():
-
     database_data = db.session.query(Airport).all()
     airports = {
         f"{i.iata} {i.city}" + f" {i.name}".replace(i.city, "") for i in database_data

@@ -11,7 +11,6 @@ def create_app():
     app.config["SECRET_KEY"] = FLASK_KEY
 
     db = SQLAlchemy()
-
     db.init_app(app)
 
     login_manager = LoginManager()
