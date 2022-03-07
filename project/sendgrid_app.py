@@ -1,15 +1,13 @@
-import os
-
 import sendgrid
-from dotenv import load_dotenv
 from sendgrid.helpers.mail import Content, Email, Mail, To
 
-load_dotenv()
+from .config import SENDGRID_API_KEY, FROM_EMAIL
 
 
 def send_email_sendgrid(recipient):
-    sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
-    from_email = Email("apptesting.mj@gmail.com")
+    sg = sendgrid.SendGridAPIClient(
+        api_key=SENDGRID_API_KEY)
+    from_email = Email(FROM_EMAIL)
     to_email = To(recipient)  # Change to your recipient
     subject = "Sending with SendGrid is Fun"
     content = Content(

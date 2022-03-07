@@ -1,49 +1,21 @@
-import os
-from collections import namedtuple
 from typing import Dict
 
 import airportsdata
-import numpy as np
-import pandas as pd
 import requests
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.types import Float, Integer, Text
 
-# Load environment variables. Environment variables are stored in .env file
-# where sensitive data is kept. This file is ignored by git on purpose.
-load_dotenv()
+from .config import AIRLABS_API_KEY, API_BASE
+from .db import session
+from .models import Airport
 
-
-# Module constants
-API_BASE = "http://airlabs.co/api/v9/"
-flight = namedtuple("Flight", ["departure", "arrival"])
 MAX_THREADS = 30
 
 
-def headers():
-    return [
-        "index",
-        "arr_estimated",
-        "arr_estimated_ts",
-        "arr_estimated_utc",
-        "dep_actual",
-        "dep_actual_ts",
-        "dep_actual_utc",
-        "dep_estimated",
-        "dep_estimated_ts",
-        "dep_estimated_utc",
-    ]
-
-
-def airlabs_airlines_response_data() -> Dict:
+def _airlabs_airlines_response_data() -> Dict:
     """
     Function retrieves airlines name database in json dictionary format.
     """
     params = {
-        "api_key": os.environ[
-            "AIRLABS_API_KEY"
-        ],  # API personal key, for testing purpose I will leave it
+        "api_key": AIRLABS_API_KEY,
         "name": "",  # Get results sorted by name
     }
     method = "airlines"  # One of AIRLABS API's databases
@@ -54,34 +26,18 @@ def airlabs_airlines_response_data() -> Dict:
 
 def airlabs_airlines_data_into_sql():
     """
-    Function transforms .json data from AIRLABS_airlines_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import airlines
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airlabs_airlines_response_data())
-    dataframe.to_sql(
-        "airlines_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Integer,
-            "icao_code": Text,
-            "iata_code": Text,
-            "name": Text,
-        },
-    )
+    airlines = _airlabs_airlines_response_data()
+    breakpoint()
 
 
-def airlabs_flights_response_data(departure, arrival) -> Dict:
+def _airlabs_flights_response_data(departure, arrival) -> Dict:
     """
     Function retrieves flights data database in json dictionary format.
     """
     params = {
-        "api_key": os.environ["AIRLABS_API_KEY"],  # API personal key
+        "api_key": AIRLABS_API_KEY,
         "dep_iata": departure,
         "arr_iata": arrival,
     }
@@ -93,45 +49,10 @@ def airlabs_flights_response_data(departure, arrival) -> Dict:
 
 def airlabs_flights_data_into_sql(departure, arrival):
     """
-    Function transforms .json data from AIRLABS_flights_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import flights
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(
-        airlabs_flights_response_data(departure, arrival)
-    )
-    dataframe.to_sql(
-        "flights_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Integer,
-            "aircraft_icao": Text,
-            "airline_iata": Text,
-            "airline_icao": Text,
-            "alt": Integer,
-            "arr_iata": Text,
-            "dep_iata": Text,
-            "dir": Integer,
-            "flag": Text,
-            "flight_iata": Text,
-            "flight_icao": Text,
-            "flight_number": Text,
-            "hex": Text,
-            "lat": Float,
-            "lng": Float,
-            "reg_number": Text,
-            "speed": Integer,
-            "squawk": Text,
-            "status": Text,
-            "updated": Integer,
-            "v_speed": Float,
-        },
-    )
+    flights = _airlabs_flights_response_data(departure, arrival)
+    breakpoint()
 
 
 def airlabs_schedules_response_data(departure, arrival) -> Dict:
@@ -140,7 +61,7 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
     specific airport in json dictionary format.
     """
     params = {
-        "api_key": os.environ["AIRLABS_API_KEY"],  # API personal key
+        "api_key": AIRLABS_API_KEY,  # API personal key
         "dep_iata": departure,
         "arr_iata": arrival,
     }
@@ -152,113 +73,29 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
 
 def airlabs_schedules_data_into_sql(departure, arrival):
     """
-    Function transforms .json data from AIRLABS_airlines_response_data()
-    function to Pandas Dataframe. Dataframe is then sent to SQL database
+    Function to import schedules
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(
-        airlabs_schedules_response_data(departure, arrival)
-    )
-    if dataframe.empty:
-        return False
-
-    for i in headers():
-        if i not in dataframe:
-            dataframe[i] = "-"
-    dataframe["index"] = dataframe.index
-    dataframe_final = dataframe.fillna("-")
-    dataframe_final.to_sql(
-        "schedules_database",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Text,
-            "aircraft_icao": Text,
-            "airline_iata": Text,
-            "airline_icao": Text,
-            "arr_baggage": Text,
-            "arr_estimated": Text,
-            "arr_estimated_ts": Text,
-            "arr_estimated_utc": Text,
-            "arr_gate": Text,
-            "arr_iata": Text,
-            "arr_icao": Text,
-            "arr_terminal": Text,
-            "arr_time": Text,
-            "arr_time_ts": Text,
-            "arr_time_utc": Text,
-            "cs_airline_iata": Text,
-            "cs_flight_iata": Text,
-            "cs_flight_number": Text,
-            "delayed": Text,
-            "dep_actual": Text,
-            "dep_actual_ts": Text,
-            "dep_actual_utc": Text,
-            "dep_estimated": Text,
-            "dep_estimated_ts": Text,
-            "dep_estimated_utc": Text,
-            "dep_gate": Text,
-            "dep_iata": Text,
-            "dep_icao": Text,
-            "dep_terminal": Text,
-            "dep_time": Text,
-            "dep_time_ts": Text,
-            "dep_time_utc": Text,
-            "duration": Text,
-            "flight_iata": Text,
-            "flight_icao": Text,
-            "flight_number": Text,
-            "status": Text,
-        },
-    )
-
-
-def airports_module_dataframe():
-    """
-    Function uses aiportsdata module to retrieve
-    dataframe with airports names and IATA codes.
-    """
-    airports = airportsdata.load()
-    dataframe_base = pd.DataFrame.from_dict(airports, orient="index")
-    dataframe_base["iata"].replace(
-        "", np.nan, inplace=True
-    )  # replace empty cells with NaN
-    dataframe_new = dataframe_base[["iata", "name", "city"]].dropna(
-        thresh=3
-    )  # drop cells with NaN value
-    dataframe_new["name_city"] = dataframe_new[["name", "city"]].agg(
-        " - ".join, axis=1
-    )  # 3rd column added with Airport name + City Name
-    return dataframe_new
+    schedules = airlabs_schedules_response_data(departure, arrival)
+    breakpoint()
 
 
 def airports_data_into_sql():
     """
-    Function transforms dataframe into SQL table.
+    Function that imports airports
     """
-    engine = create_engine(
-        os.environ["CONNECTION_LINK"], echo=True
-    )  # Database personal key
-    dataframe = pd.DataFrame.from_dict(airports_module_dataframe())
-    dataframe.to_sql(
-        "airport_database_table",
-        engine,
-        if_exists="replace",
-        index=True,
-        chunksize=500,
-        dtype={
-            "index": Text,
-            "iata": Text,
-            "name": Text,
-            "city": Text,
-            "name_city": Text,
-        },
-    )
+    airports = airportsdata.load()
+    for airport in airports.values():
+        session.add(
+            Airport(
+                city=airport["city"],
+                country=airport["country"],
+                iata=airport["iata"],
+                icao=airport["icao"],
+                name=airport["name"],
+            )
+        )
+    session.commit()
 
 
 if __name__ == "__main__":
-    pass
+    airports_data_into_sql()
