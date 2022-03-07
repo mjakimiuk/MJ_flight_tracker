@@ -3,72 +3,33 @@
 
 
 {% block content %}
+{% if no_data %}
+<h1> There is no flights </h1>
+
+{% else %}
 <h1>You submited locations! From: {{ destination[0] }} To: {{ destination[1] }}</h1>
 <div class="container.is-fullhd">
   <div class="table-container">
     <table class="table is-striped">
-      <tr>
-        <th>index</th>
-        <th>Departure</th>
-        <th>Flight</th>
-        <th>Departure
-          <br>
-          gate
-        </th>
-        <th>Departure
-          <br>
-          terminal
-        </th>
-        <th>Arrival
-          <br>
-          gate
-        </th>
-        <th>Arrival
-          <br>
-          terminal
-        </th>
-
-        <th>Baggage
-          <br>
-          belt
-        </th>
-        <th>Arrival</th>
-        <th>Delayed</th>
-        <th>Duration</th>
-        <th>Status</th>
-        <th>Follow
-          <br>
-          flight
-        </th>
-
-      </tr>
-      {% for i in database_data %}
-
-      <tr>
-        <td>{{ i.index }}</td>
-        <td>{{ i.dep_time }}</td>
-        <td>{{ i.flight_iata }}
-          <br>
-          {{ airline_names[i.airline_icao] }}
-        </td>
-        <td>{{ i.dep_gate }}</td>
-        <td>{{ i.dep_terminal }}</td>
-        <td>{{ i.arr_gate }}</td>
-        <td>{{ i.arr_terminal }}</td>
-        <td>{{ i.arr_baggage }}</td>
-        <td>{{ i.arr_time }}</td>
-        <td>{{ i.delayed }}</td>
-        <td>{{ i.duration }}</td>
-        <td>{{ i.status }}</td>
-        <td><form>
-          <a href=# id=test><button class='button'>Test</button></a>
-      </form></td>
-      </tr>
-
+    <tr>
+      {% for header in headings %}
+      <th>{{ header }}</th>
       {% endfor %}
+    </tr>
+    {% for row in data_in_table %}
+    <tr>
+      {% for cell in row %}
+      <td>{{ cell }}</td>
+      {% endfor %}
+      <td><form>
+        <a href=# id=test><button class='button'>Test</button></a>
+    </form></td>
+    </tr>
+    {% endfor %}
     </table>
   </div>
 </div>
+{% endif %}
 
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>

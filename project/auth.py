@@ -3,7 +3,7 @@ from flask_login import login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
-from .models import User_Table
+from .models import User
 
 auth = Blueprint("auth", __name__)
 
@@ -19,7 +19,7 @@ def login_post():
     password = request.form.get("password")
     remember = bool(request.form.get("remember"))
 
-    user = User_Table.query.filter_by(email=email).first()
+    user = db.session.query(User).filter_by(email=email).first()
 
     if not user or not check_password_hash(user.password, password):
         flash("Please check your login details and try again.")
@@ -40,7 +40,7 @@ def signup_post():
     name = request.form.get("name")
     password = request.form.get("password")
 
-    user = User_Table.query.filter_by(email=email).first()
+    user = db.session.query(User).filter_by(email=email).first()
     # if this returns a user,
     # then the email already exists in database
     if user:
@@ -51,7 +51,7 @@ def signup_post():
 
     # create a new user with the form data.
     #  Hash the password so the plaintext version isn't saved.
-    new_user = User_Table(
+    new_user = User(
         email=email,
         name=name,
         password=generate_password_hash(password, method="sha256"),
