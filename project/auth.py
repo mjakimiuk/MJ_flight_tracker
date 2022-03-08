@@ -65,7 +65,7 @@ def signup_post():
         email=email,
         name=name,
         password=generate_password_hash(password, method="sha256"),
-        api_key="",
+        api_key=None,
     )
 
     # add the new user to the database

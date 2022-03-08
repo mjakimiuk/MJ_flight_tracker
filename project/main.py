@@ -1,9 +1,12 @@
 from flask import Blueprint, render_template, request
 from flask_login import current_user, login_required
-from werkzeug.security import generate_password_hash
 
 from . import db
-from .app_backend import airlabs_schedules_data_into_sql
+from .app_backend import (
+    airlabs_schedules_data_into_sql,
+    decrypt_api_code,
+    encrypt_api_code,
+)
 from .models import Airlines, Airport, Schedules, User
 from .sendgrid_app import send_email_sendgrid
 
@@ -43,12 +46,20 @@ def index():
 @main.route("/profile", methods=["POST", "GET"])
 @login_required
 def profile():
+    api_key_stored = ""
     api_key = request.form.get("api_key")
+    user = db.session.query(User).filter_by(email=current_user.email).first()
     if api_key:
-        user = db.session.query(User).filter_by(email=current_user.email).first()
-        user.api_key = generate_password_hash(api_key, method="sha256")
+
+        user.api_key = encrypt_api_code(api_key)
         db.session.commit()
-    return render_template("profile.html", name=current_user.name)
+    if user.api_key:
+        api_key_stored = decrypt_api_code(user.api_key)
+        if request.method == "POST" and "api_key_resubmit" in request.form:
+            api_key_stored = ""
+    return render_template(
+        "profile.html", name=current_user.name, api_key=api_key_stored
+    )
 
 
 @main.route("/flights", methods=["POST", "GET"])

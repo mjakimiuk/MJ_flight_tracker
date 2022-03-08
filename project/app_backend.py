@@ -2,10 +2,29 @@ from typing import Dict
 
 import airportsdata
 import requests
+from cryptography.fernet import Fernet
+from flask_login import current_user
 
-from .config import AIRLABS_API_KEY, API_BASE
+from . import db
+from .config import AIRLABS_API_KEY, API_BASE, FERNET_KEY
 from .db import session
-from .models import Airlines, Airport, Schedules
+from .models import Airlines, Airport, Schedules, User
+
+
+def encrypt_api_code(api_code):
+    f = Fernet(FERNET_KEY.encode())
+    return f.encrypt(api_code.encode()).decode()
+
+
+def decrypt_api_code(api_code):
+    f = Fernet(FERNET_KEY)
+    if api_code:
+        return f.decrypt(api_code.encode()).decode()
+
+
+def api_code():
+    user = db.session.query(User).filter_by(email=current_user.email).first()
+    return decrypt_api_code(user.api_key)
 
 
 def _airlabs_airlines_response_data() -> Dict:
@@ -72,7 +91,7 @@ def airlabs_schedules_response_data(departure, arrival) -> Dict:
     specific airport in json dictionary format.
     """
     params = {
-        "api_key": AIRLABS_API_KEY,
+        "api_key": api_code(),
         "dep_iata": departure,
         "arr_iata": arrival,
     }
@@ -203,6 +222,4 @@ def airports_data_into_sql():
 
 
 if __name__ == "__main__":
-    # airports_data_into_sql()
-    # airlabs_schedules_data_into_sql("BGO",'OSL')
-    airlabs_airlines_data_into_sql()
+    pass

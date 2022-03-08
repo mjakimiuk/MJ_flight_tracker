@@ -10,8 +10,9 @@ def send_email_sendgrid(recipient):
     to_email = To(recipient)  # Change to your recipient
     subject = "Sending with SendGrid is Fun"
     content = Content(
+        "text/plain",
         """text/plain", "and easy to do anywhere,
-                      even with Python"""
+                      even with Python""",
     )
     mail = Mail(from_email, to_email, subject, content)
 

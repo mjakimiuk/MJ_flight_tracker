@@ -5,6 +5,20 @@
   Welcome, {{ name }}!
 </h1>
 
+
+
+{% if api_key %}
+<form method="POST" action="/profile">
+  <div class="field">
+      <div class="control">
+          <input class="input is-large" type="text" name="api_key_resubmit" placeholder="{{api_key}}" autofocus="" disabled>
+      </div>
+  </div>
+
+  <button name="api_key_resubmit" class="button is-block is-info is-large is-fullwidth">Resubmit API</button>
+</form>
+
+{% else %}
 <form method="POST" action="/profile">
   <div class="field">
       <div class="control">
@@ -14,5 +28,7 @@
 
   <button class="button is-block is-info is-large is-fullwidth">Submit API</button>
 </form>
+
+{% endif %}
 
 {% endblock %}
