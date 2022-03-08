@@ -17,7 +17,7 @@ def encrypt_api_code(api_code):
 
 
 def decrypt_api_code(api_code):
-    f = Fernet(FERNET_KEY)
+    f = Fernet(FERNET_KEY.encode())
     if api_code:
         return f.decrypt(api_code.encode()).decode()
 
