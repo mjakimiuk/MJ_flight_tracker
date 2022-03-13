@@ -17,7 +17,7 @@ def encrypt_api_code(api_code):
 
 
 def decrypt_api_code(api_code):
-    f = Fernet(FERNET_KEY.encode())
+    f = Fernet(FERNET_KEY)
     if api_code:
         return f.decrypt(api_code.encode()).decode()
 
@@ -105,100 +105,199 @@ def airlabs_schedules_data_into_sql(departure, arrival):
     """
     Function to import schedules
     """
+    user = db.session.query(User).filter_by(email=current_user.email).first()
     schedules = airlabs_schedules_response_data(departure, arrival)
     if not schedules:
         return False
-    session.query(Schedules).delete()
     for flights in schedules:
-
-        session.add(
-            Schedules(
-                aircraft_icao=flights["aircraft_icao"]
-                if flights.get("aircraft_icao")
-                else "-",
-                airline_iata=flights["airline_iata"]
-                if flights.get("airline_iata")
-                else "-",
-                airline_icao=flights["airline_icao"]
-                if flights.get("airline_icao")
-                else "-",
-                arr_baggage=flights["arr_baggage"]
-                if flights.get("arr_baggage")
-                else "-",
-                arr_estimated=flights["arr_estimated"]
-                if flights.get("arr_estimated")
-                else "-",
-                arr_estimated_ts=flights["arr_estimated_ts"]
-                if flights.get("arr_estimated_ts")
-                else "-",
-                arr_estimated_utc=flights["arr_estimated_utc"]
-                if flights.get("arr_estimated_utc")
-                else "-",
-                arr_gate=flights["arr_gate"] if flights.get("arr_gate") else "-",
-                arr_iata=flights["arr_iata"] if flights.get("arr_iata") else "-",
-                arr_icao=flights["arr_icao"] if flights.get("arr_icao") else "-",
-                arr_terminal=flights["arr_terminal"]
-                if flights.get("arr_terminal")
-                else "-",
-                arr_time=flights["arr_time"] if flights.get("arr_time") else "-",
-                arr_time_ts=flights["arr_time_ts"]
-                if flights.get("arr_time_ts")
-                else "-",
-                arr_time_utc=flights["arr_time_utc"]
-                if flights.get("arr_time_utc")
-                else "-",
-                cs_airline_iata=flights["cs_airline_iata"]
-                if flights.get("cs_airline_iata")
-                else "-",
-                cs_flight_iata=flights["cs_flight_iata"]
-                if flights.get("cs_flight_iata")
-                else "-",
-                cs_flight_number=flights["cs_flight_number"]
-                if flights.get("cs_flight_number")
-                else "-",
-                delayed=flights["delayed"] if flights.get("delayed") else "-",
-                dep_actual=flights["dep_actual"] if flights.get("dep_actual") else "-",
-                dep_actual_ts=flights["dep_actual_ts"]
-                if flights.get("dep_actual_ts")
-                else "-",
-                dep_actual_utc=flights["dep_actual_utc"]
-                if flights.get("dep_actual_utc")
-                else "-",
-                dep_estimated=flights["dep_estimated"]
-                if flights.get("dep_estimated")
-                else "-",
-                dep_estimated_ts=flights["dep_estimated_ts"]
-                if flights.get("dep_estimated_ts")
-                else "-",
-                dep_estimated_utc=flights["dep_estimated_utc"]
-                if flights.get("dep_estimated_utc")
-                else "-",
-                dep_gate=flights["dep_gate"] if flights.get("dep_gate") else "-",
-                dep_iata=flights["dep_iata"] if flights.get("dep_iata") else "-",
-                dep_icao=flights["dep_icao"] if flights.get("dep_icao") else "-",
-                dep_terminal=flights["dep_terminal"]
-                if flights.get("dep_terminal")
-                else "-",
-                dep_time=flights["dep_time"] if flights.get("dep_time") else "-",
-                dep_time_ts=flights["dep_time_ts"]
-                if flights.get("dep_time_ts")
-                else "-",
-                dep_time_utc=flights["dep_time_utc"]
-                if flights.get("dep_time_utc")
-                else "-",
-                duration=flights["duration"] if flights.get("duration") else "-",
-                flight_iata=flights["flight_iata"]
-                if flights.get("flight_iata")
-                else "-",
-                flight_icao=flights["flight_icao"]
-                if flights.get("flight_icao")
-                else "-",
-                flight_number=flights["flight_number"]
-                if flights.get("flight_number")
-                else "-",
-                status=flights["status"] if flights.get("status") else "-",
-            )
+        exists = (
+            db.session.query(Schedules)
+            .filter(Schedules.flight_iata == flights.get("flight_iata"))
+            .first()
         )
+        if exists:
+            exists.aircraft_icao = (
+                flights["aircraft_icao"] if flights.get("aircraft_icao") else "-"
+            )
+            exists.airline_iata = (
+                flights["airline_iata"] if flights.get("airline_iata") else "-"
+            )
+            exists.airline_icao = (
+                flights["airline_icao"] if flights.get("airline_icao") else "-"
+            )
+            exists.arr_baggage = (
+                flights["arr_baggage"] if flights.get("arr_baggage") else "-"
+            )
+            exists.arr_estimated = (
+                flights["arr_estimated"] if flights.get("arr_estimated") else "-"
+            )
+            exists.arr_estimated_ts = (
+                flights["arr_estimated_ts"] if flights.get("arr_estimated_ts") else "-"
+            )
+            exists.arr_estimated_utc = (
+                flights["arr_estimated_utc"]
+                if flights.get("arr_estimated_utc")
+                else "-"
+            )
+            exists.arr_gate = flights["arr_gate"] if flights.get("arr_gate") else "-"
+            exists.arr_iata = flights["arr_iata"] if flights.get("arr_iata") else "-"
+            exists.arr_icao = flights["arr_icao"] if flights.get("arr_icao") else "-"
+            exists.arr_terminal = (
+                flights["arr_terminal"] if flights.get("arr_terminal") else "-"
+            )
+            exists.arr_time = flights["arr_time"] if flights.get("arr_time") else "-"
+            exists.arr_time_ts = (
+                flights["arr_time_ts"] if flights.get("arr_time_ts") else "-"
+            )
+            exists.arr_time_utc = (
+                flights["arr_time_utc"] if flights.get("arr_time_utc") else "-"
+            )
+            exists.cs_airline_iata = (
+                flights["cs_airline_iata"] if flights.get("cs_airline_iata") else "-"
+            )
+            exists.cs_flight_iata = (
+                flights["cs_flight_iata"] if flights.get("cs_flight_iata") else "-"
+            )
+            exists.cs_flight_number = (
+                flights["cs_flight_number"] if flights.get("cs_flight_number") else "-"
+            )
+            exists.delayed = flights["delayed"] if flights.get("delayed") else "-"
+            exists.dep_actual = (
+                flights["dep_actual"] if flights.get("dep_actual") else "-"
+            )
+            exists.dep_actual_ts = (
+                flights["dep_actual_ts"] if flights.get("dep_actual_ts") else "-"
+            )
+            exists.dep_actual_utc = (
+                flights["dep_actual_utc"] if flights.get("dep_actual_utc") else "-"
+            )
+            exists.dep_estimated = (
+                flights["dep_estimated"] if flights.get("dep_estimated") else "-"
+            )
+            exists.dep_estimated_ts = (
+                flights["dep_estimated_ts"] if flights.get("dep_estimated_ts") else "-"
+            )
+            exists.dep_estimated_utc = (
+                flights["dep_estimated_utc"]
+                if flights.get("dep_estimated_utc")
+                else "-"
+            )
+            exists.dep_gate = flights["dep_gate"] if flights.get("dep_gate") else "-"
+            exists.dep_iata = flights["dep_iata"] if flights.get("dep_iata") else "-"
+            exists.dep_icao = flights["dep_icao"] if flights.get("dep_icao") else "-"
+            exists.dep_terminal = (
+                flights["dep_terminal"] if flights.get("dep_terminal") else "-"
+            )
+            exists.dep_time = flights["dep_time"] if flights.get("dep_time") else "-"
+            exists.dep_time_ts = (
+                flights["dep_time_ts"] if flights.get("dep_time_ts") else "-"
+            )
+            exists.dep_time_utc = (
+                flights["dep_time_utc"] if flights.get("dep_time_utc") else "-"
+            )
+            exists.duration = flights["duration"] if flights.get("duration") else "-"
+            exists.flight_iata = (
+                flights["flight_iata"] if flights.get("flight_iata") else "-"
+            )
+            exists.flight_icao = (
+                flights["flight_icao"] if flights.get("flight_icao") else "-"
+            )
+            exists.flight_number = (
+                flights["flight_number"] if flights.get("flight_number") else "-"
+            )
+            exists.status = flights["status"] if flights.get("status") else "-"
+        else:
+            session.add(
+                Schedules(
+                    parent_id=user.id,
+                    aircraft_icao=flights["aircraft_icao"]
+                    if flights.get("aircraft_icao")
+                    else "-",
+                    airline_iata=flights["airline_iata"]
+                    if flights.get("airline_iata")
+                    else "-",
+                    airline_icao=flights["airline_icao"]
+                    if flights.get("airline_icao")
+                    else "-",
+                    arr_baggage=flights["arr_baggage"]
+                    if flights.get("arr_baggage")
+                    else "-",
+                    arr_estimated=flights["arr_estimated"]
+                    if flights.get("arr_estimated")
+                    else "-",
+                    arr_estimated_ts=flights["arr_estimated_ts"]
+                    if flights.get("arr_estimated_ts")
+                    else "-",
+                    arr_estimated_utc=flights["arr_estimated_utc"]
+                    if flights.get("arr_estimated_utc")
+                    else "-",
+                    arr_gate=flights["arr_gate"] if flights.get("arr_gate") else "-",
+                    arr_iata=flights["arr_iata"] if flights.get("arr_iata") else "-",
+                    arr_icao=flights["arr_icao"] if flights.get("arr_icao") else "-",
+                    arr_terminal=flights["arr_terminal"]
+                    if flights.get("arr_terminal")
+                    else "-",
+                    arr_time=flights["arr_time"] if flights.get("arr_time") else "-",
+                    arr_time_ts=flights["arr_time_ts"]
+                    if flights.get("arr_time_ts")
+                    else "-",
+                    arr_time_utc=flights["arr_time_utc"]
+                    if flights.get("arr_time_utc")
+                    else "-",
+                    cs_airline_iata=flights["cs_airline_iata"]
+                    if flights.get("cs_airline_iata")
+                    else "-",
+                    cs_flight_iata=flights["cs_flight_iata"]
+                    if flights.get("cs_flight_iata")
+                    else "-",
+                    cs_flight_number=flights["cs_flight_number"]
+                    if flights.get("cs_flight_number")
+                    else "-",
+                    delayed=flights["delayed"] if flights.get("delayed") else "-",
+                    dep_actual=flights["dep_actual"]
+                    if flights.get("dep_actual")
+                    else "-",
+                    dep_actual_ts=flights["dep_actual_ts"]
+                    if flights.get("dep_actual_ts")
+                    else "-",
+                    dep_actual_utc=flights["dep_actual_utc"]
+                    if flights.get("dep_actual_utc")
+                    else "-",
+                    dep_estimated=flights["dep_estimated"]
+                    if flights.get("dep_estimated")
+                    else "-",
+                    dep_estimated_ts=flights["dep_estimated_ts"]
+                    if flights.get("dep_estimated_ts")
+                    else "-",
+                    dep_estimated_utc=flights["dep_estimated_utc"]
+                    if flights.get("dep_estimated_utc")
+                    else "-",
+                    dep_gate=flights["dep_gate"] if flights.get("dep_gate") else "-",
+                    dep_iata=flights["dep_iata"] if flights.get("dep_iata") else "-",
+                    dep_icao=flights["dep_icao"] if flights.get("dep_icao") else "-",
+                    dep_terminal=flights["dep_terminal"]
+                    if flights.get("dep_terminal")
+                    else "-",
+                    dep_time=flights["dep_time"] if flights.get("dep_time") else "-",
+                    dep_time_ts=flights["dep_time_ts"]
+                    if flights.get("dep_time_ts")
+                    else "-",
+                    dep_time_utc=flights["dep_time_utc"]
+                    if flights.get("dep_time_utc")
+                    else "-",
+                    duration=flights["duration"] if flights.get("duration") else "-",
+                    flight_iata=flights["flight_iata"]
+                    if flights.get("flight_iata")
+                    else "-",
+                    flight_icao=flights["flight_icao"]
+                    if flights.get("flight_icao")
+                    else "-",
+                    flight_number=flights["flight_number"]
+                    if flights.get("flight_number")
+                    else "-",
+                    status=flights["status"] if flights.get("status") else "-",
+                )
+            )
     session.commit()
 
 

@@ -8,7 +8,8 @@ from .app_backend import (
     encrypt_api_code,
 )
 from .models import Airlines, Airport, Schedules, User
-from .sendgrid_app import send_email_sendgrid
+
+# from .sendgrid_app import send_email_sendgrid
 
 main = Blueprint("main", __name__)
 
@@ -92,9 +93,17 @@ def flights():
             request.form.get("airport_1"),
             request.form.get("airport_2"),
         )
+        user = db.session.query(User).filter_by(email=current_user.email).first()
+        database_data_by_user = (
+            db.session.query(Schedules)
+            .filter_by(
+                parent_id=user.id, dep_iata=departure.iata, arr_iata=arrival.iata
+            )
+            .all()
+        )
         data_in_table = tuple(
             (
-                i.id - 1,
+                number,
                 i.dep_time,
                 i.dep_estimated,
                 i.flight_iata,
@@ -110,7 +119,7 @@ def flights():
                 i.duration,
                 i.status,
             )
-            for i in database_data
+            for number, i in enumerate(database_data_by_user, start=1)
         )
 
     return render_template(
@@ -131,6 +140,5 @@ def followed_flights():
 # background process happening without any refreshing
 @main.route("/background_process_test")
 def background_process_test():
-    recipient = "marcin.jakimiuk@gmail.com"
-    send_email_sendgrid(recipient)
+
     return "nothing"

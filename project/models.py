@@ -1,6 +1,7 @@
 from flask_login import UserMixin
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -12,6 +13,7 @@ class User(UserMixin, Base):
     password = Column(String(100))
     name = Column(String(1000))
     api_key = Column(String(1000))
+    children = relationship("Schedules")
 
 
 class Airport(Base):
@@ -27,6 +29,7 @@ class Airport(Base):
 class Schedules(Base):
     __tablename__ = "schedules"
     id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey("user_flask.id"))
     aircraft_icao = Column(String(100), unique=False, nullable=False)
     airline_iata = Column(String(100), unique=False, nullable=False)
     airline_icao = Column(String(100), unique=False, nullable=False)
